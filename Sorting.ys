@@ -1,0 +1,71 @@
+.pos 0					#make the start address of program as 0x0
+irmovq stack, %rsp			#initialize the address of %rsp
+call main				#start the main function
+halt					#ends the program
+
+main:
+	irmovq $8, %rbx 			#declare common used constant 8
+	irmovq $1, %r11			#declare common used constant 1
+	irmovq A1, %rbp			#move the address of array to %rbp
+	call initA1			#call the label initA1 to intialize values in A1
+	irmovq $0, %r8			#initialize i value (%r8) to 0
+	call BubbleSortOL		#call BubbleSortOL label, start sorting
+	ret				#return the main function
+initA1:					#this label initialize the values of the array
+	pushq %rbp			#store the original address of array A1 into stack
+	irmovq $6, %r14			#put constant 6 to a temporary register %r14
+	rmmovq %r14, (%rbp)		#move the value 6 to the first element spot of the array
+	addq %rbx, %rbp			#increment the address of %rbp to the address for the next value we want to put in
+	irmovq $5, %r14			#put constant 5 to a temporary register %r14
+	rmmovq %r14, (%rbp)		#move the value 5 to the second element spot of the array
+	addq %rbx, %rbp			#increment the address of %rbp to the address for the next value we want to put in
+	irmovq $4, %r14			#put constant 4 to a temporary register %r14
+	rmmovq %r14, (%rbp)		#move the value 4 to the third element spot of the array
+	addq %rbx, %rbp			#increment the address of %rbp to the address for the next value we want to put in
+	irmovq $3, %r14			#put constant 3 to a temporary register %r14
+	rmmovq %r14, (%rbp)		#move the value 3 to the fourth element spot of the array
+	addq %rbx, %rbp			#increment the address of %rbp to the address for the next value we want to put in
+	irmovq $2, %r14			#put constant 2 to a temporary register %r14
+	rmmovq %r14, (%rbp)		#move the value 2 to the fifth element spot of the array
+	addq %rbx, %rbp			#increment the address of %rbp to the address for the next value we want to put in
+	irmovq $1, %r14			#put constant 1 to a temporary register %r14
+	rmmovq %r14, (%rbp)		#move the value 1 to the sixth element spot of the array
+	popq %rbp			#get the original address of array A1 from stack back to %rbp
+	ret				#return back to main
+IL:					#this label is the if-else section of the inner loop
+	mrmovq (%rbp), %rdi		#get arr[j+1] to %rdi
+	subq %rbx, %rbp			#decrement address of %rbp to the address of arr[j]
+	rmmovq %rdi, (%rbp)		#put value in %rdi to the memory address of arr[j]
+	addq %rbx, %rbp			#increment address of %rbp back to arr[j+1]
+	rmmovq %rsi, (%rbp)		#put value in %rsi to memory adress of arr[j+1]
+	addq %r11, %r9			#increment j++
+	jmp ILcond			#jump to condition check label
+ILif:					#this label does condition check of if (arr[j] > arr[j+1])
+	mrmovq (%rbp), %rsi		#get value store in arr[j] to register %rsi
+	addq %rbx, %rbp			#increment the address of %rbp to the address arr[j+1]
+	mrmovq (%rbp), %rdi		#get value store in arr[j+1] to register %rdi
+	subq %rsi, %rdi			#arr[j+1] - arr[j]
+	jle IL				#jump to IL if arr[j+1} less than or equal to arr[j]
+	addq %r11,%r9			#else increment j++
+ILcond:					#label to check j < n - i - 1
+	irmovq n, %rcx			#move value of n (6) to  %rcx that stores n value
+	subq %r11, %rcx			#this line and next line => n = n -1 -i 
+	subq %r8, %rcx			
+	subq %r9, %rcx			# n - j to check if n > j
+	jg ILif				#if n > j then jump to ILif
+	addq %r11, %r8			#else increment i++
+BubbleSortOL:				#this label handles the outer loop  => condition check for i
+	irmovq n, %rcx			#move value of n (6) to  %rcx that stores n value
+	subq %r11, %rcx			# n = n -1
+	irmovq $0, %r9			# initialize j = 0
+	irmovq A1, %rbp			#move address of arr A1 to %rbp
+	subq %r8, %rcx			# (n - 1) - i to check loop condition
+	jg ILcond			# if (n-1) > i, jump to ILcond
+	ret				# else bubble sort is done
+
+	.pos 0x6			#initialize n (size of the array) as constant 6
+n:
+	.pos 0x4a0			#initialize A1 as the address of the array 0x4a0
+A1:
+	.pos 0xff0			#initialize stack as the address of the stack 0xff0
+stack:
